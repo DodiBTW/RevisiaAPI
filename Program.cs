@@ -33,7 +33,8 @@ builder.Services.AddControllers(); builder.Services.AddCors(options =>
             .WithOrigins(
                 "http://localhost:5173",
                 "http://localhost:4173",
-                "https://revisia.adaoud.com"
+                "https://revisia.adaoud.dev",
+                "https://apirevisia.adaoud.dev"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -79,7 +80,8 @@ var app = builder.Build();
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    KnownProxies = { System.Net.IPAddress.Parse("127.0.0.1") }
 });
 
 app.UseCors();
