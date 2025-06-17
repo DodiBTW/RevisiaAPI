@@ -10,10 +10,10 @@ using RevisiaAPI.Services;
 using System.Text;
 using DotNetEnv;
 
-var builder = WebApplication.CreateBuilder(args);
 
 DotNetEnv.Env.Load();
-
+var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables();
 var secretKey = builder.Configuration["JWT_SECRET"] ?? throw new Exception("JWT_SECRET missing");
 var issuer = builder.Configuration["JWT_ISSUER"] ?? throw new Exception("JWT_ISSUER missing");
 var audience = builder.Configuration["JWT_AUDIENCE"] ?? throw new Exception("JWT_AUDIENCE missing");
