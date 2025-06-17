@@ -1,0 +1,6 @@
+@RevisiaAPI_HostAddress = http://localhost:5183
+
+GET {{RevisiaAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

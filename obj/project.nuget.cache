@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "ZbuUNg2dJSk=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\adaoud\\source\\repos\\RevisiaAPI\\RevisiaAPI.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\adaoud\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.5\\microsoft.aspnetcore.openapi.9.0.5.nupkg.sha512",
+    "C:\\Users\\adaoud\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512",
+    "C:\\Users\\adaoud\\.nuget\\packages\\microsoft.visualstudio.azure.containers.tools.targets\\1.22.1-preview.1\\microsoft.visualstudio.azure.containers.tools.targets.1.22.1-preview.1.nupkg.sha512"
+  ],
+  "logs": []
+}
