@@ -1,15 +1,17 @@
+using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.HttpOverrides;
 using MySqlConnector;
 using RevisiaAPI.Services;
-using System.Text;
-using DotNetEnv;
 using System.Data.Common;
+using System.Text;
 
 
 DotNetEnv.Env.Load();
@@ -74,6 +76,11 @@ builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 app.UseCors();
 app.UseAuthentication();
