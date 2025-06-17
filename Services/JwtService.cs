@@ -24,10 +24,11 @@ namespace RevisiaAPI.Services
         {
             var claims = new[]
             {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Username),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.Name, user.Username)
-        };
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Username),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.Name, user.Username)
+            };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
