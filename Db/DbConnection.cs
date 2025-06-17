@@ -7,8 +7,7 @@ public static class DbConnection
 
     public static void Init(IConfiguration configuration)
     {
-        _connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? throw new Exception("Connection string 'DefaultConnection' is missing.");
+        _connectionString = configuration.["DefaultConnection"] ?? throw new Exception("Connection string missing");
     }
 
     public static MySqlConnection GetConnection()
