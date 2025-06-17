@@ -37,7 +37,7 @@ namespace RevisiaAPI.Db
                     Id = reader.GetInt32("id"),
                     Username = reader.GetString("username"),
                     Email = reader.GetString("email"),
-                    PasswordHash = reader.GetString("password_hash")
+                    PasswordHash = reader.GetString("PasswordHash")
                 };
             }
             return null;
