@@ -6,7 +6,7 @@ namespace RevisiaAPI.Db
     {
         public static async Task<bool> UserExistsAsync(string username, string email, MySqlConnection conn)
         {
-            var cmd = new MySqlCommand("SELECT COUNT(*) FROM users WHERE username = @username OR email = @email", conn);
+            var cmd = new MySqlCommand("SELECT COUNT(*) FROM User WHERE Username = @username OR Email = @email", conn);
             cmd.Parameters.AddWithValue("@username", username);
             cmd.Parameters.AddWithValue("@email", email);
             var count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
@@ -17,7 +17,7 @@ namespace RevisiaAPI.Db
         {
             if (await UserExistsAsync(username, email, conn)) return false;
 
-            var cmd = new MySqlCommand("INSERT INTO users (username, email, password_hash) VALUES (@username, @email, @passwordHash)", conn);
+            var cmd = new MySqlCommand("INSERT INTO User (Username, Email, PasswordHash) VALUES (@username, @email, @passwordHash)", conn);
             cmd.Parameters.AddWithValue("@username", username);
             cmd.Parameters.AddWithValue("@email", email);
             cmd.Parameters.AddWithValue("@passwordHash", passwordHash);
@@ -27,7 +27,7 @@ namespace RevisiaAPI.Db
         }
         public static async Task<User?> GetUserByUsernameOrEmailAsync(string usernameOrEmail, MySqlConnection conn)
         {
-            var cmd = new MySqlCommand("SELECT id, username, email, password_hash FROM users WHERE username = @usernameOrEmail OR email = @usernameOrEmail", conn);
+            var cmd = new MySqlCommand("SELECT id, username, email, PasswordHash FROM User WHERE Username = @usernameOrEmail OR Email = @usernameOrEmail", conn);
             cmd.Parameters.AddWithValue("@usernameOrEmail", usernameOrEmail);
             await using var reader = await cmd.ExecuteReaderAsync();
             if (await reader.ReadAsync())
