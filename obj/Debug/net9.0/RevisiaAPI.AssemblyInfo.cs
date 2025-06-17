@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RevisiaAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+91613736a18530414d3e7eab5d4918040ccb6ed5")]
 [assembly: System.Reflection.AssemblyProductAttribute("RevisiaAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RevisiaAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
