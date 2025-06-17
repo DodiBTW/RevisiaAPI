@@ -9,6 +9,7 @@ using MySqlConnector;
 using RevisiaAPI.Services;
 using System.Text;
 using DotNetEnv;
+using System.Data.Common;
 
 
 DotNetEnv.Env.Load();
@@ -17,6 +18,9 @@ builder.Configuration.AddEnvironmentVariables();
 var secretKey = builder.Configuration["JWT_SECRET"] ?? throw new Exception("JWT_SECRET missing");
 var issuer = builder.Configuration["JWT_ISSUER"] ?? throw new Exception("JWT_ISSUER missing");
 var audience = builder.Configuration["JWT_AUDIENCE"] ?? throw new Exception("JWT_AUDIENCE missing");
+
+
+DbConnection.Init(builder.Configuration);
 
 // Add services
 builder.Services.AddControllers();
