@@ -23,7 +23,23 @@ var audience = builder.Configuration["JWT_AUDIENCE"] ?? throw new Exception("JWT
 DbConnection.Init(builder.Configuration);
 
 // Add services
-builder.Services.AddControllers();
+builder.Services.AddControllers(); builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "http://localhost:4173",
+                "https://revisia.adaoud.com"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
+
 builder.Services.AddSingleton<JwtService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -59,7 +75,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
-
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
