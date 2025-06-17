@@ -1,1 +1,79 @@
-/.vs
+# Build results
+bin/
+obj/
+
+# Visual Studio stuff
+.vs/
+.vscode/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# NuGet Packages
+*.nupkg
+packages/
+.nuget/
+
+# Rider IDE
+.idea/
+
+# DotNet Core files
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Publish output
+publish/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Resharper
+_ReSharper*/
+
+# Coverage
+coverage/
+*.coverage
+*.coveragexml
+
+# DotCover
+*.dotCover
+
+# Test Results
+TestResults/
+
+# OS stuff
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+
+# SQL Server files
+*.mdf
+*.ldf
+
+# JetBrains Rider settings
+.idea/
+
+# Others
+*.pidb
+*.svclog
+*.userprefs
+
+# Backup files
+*~
+*.bak
+
+# Docker
+docker-compose.override.yml
+
+# Lock files
+packages.lock.json
