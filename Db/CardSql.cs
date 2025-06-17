@@ -8,7 +8,7 @@ public static class CardSql
     public static async Task<List<Card>> GetCardsByDeckIdAsync(int deckId, MySqlConnection conn)
     {
         var cards = new List<Card>();
-        var cmd = new MySqlCommand("SELECT * FROM Cards WHERE DeckId = @deckId", conn);
+        var cmd = new MySqlCommand("SELECT * FROM Card WHERE DeckId = @deckId", conn);
         cmd.Parameters.AddWithValue("@deckId", deckId);
         using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
@@ -33,7 +33,7 @@ public static class CardSql
 
     public static async Task<int> CreateCardAsync(Card card, MySqlConnection conn)
     {
-        var cmd = new MySqlCommand(@"INSERT INTO Cards (DeckId, Front, Back, CreatedAt, UpdatedAt, Difficulty, Interval, NextReview, ReviewCount, Tags)
+        var cmd = new MySqlCommand(@"INSERT INTO Card (DeckId, Front, Back, CreatedAt, UpdatedAt, Difficulty, Interval, NextReview, ReviewCount, Tags)
             VALUES (@deckId, @front, @back, @createdAt, @updatedAt, @difficulty, @interval, @nextReview, @reviewCount, @tags);
             SELECT LAST_INSERT_ID();", conn);
         cmd.Parameters.AddWithValue("@deckId", card.DeckId);

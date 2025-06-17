@@ -8,7 +8,7 @@ public static class DeckSql
     public static async Task<List<Deck>> GetDecksByUserIdAsync(int userId, MySqlConnection conn)
     {
         var decks = new List<Deck>();
-        var cmd = new MySqlCommand("SELECT * FROM Decks WHERE UserId = @userId", conn);
+        var cmd = new MySqlCommand("SELECT * FROM Deck WHERE UserId = @userId", conn);
         cmd.Parameters.AddWithValue("@userId", userId);
         using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
@@ -30,7 +30,7 @@ public static class DeckSql
 
     public static async Task<int> CreateDeckAsync(Deck deck, MySqlConnection conn)
     {
-        var cmd = new MySqlCommand(@"INSERT INTO Decks (UserId, Name, Description, Color, CreatedAt, UpdatedAt, CardCount)
+        var cmd = new MySqlCommand(@"INSERT INTO Deck (UserId, Name, Description, Color, CreatedAt, UpdatedAt, CardCount)
             VALUES (@userId, @name, @description, @color, @createdAt, @updatedAt, @cardCount);
             SELECT LAST_INSERT_ID();", conn);
         cmd.Parameters.AddWithValue("@userId", deck.UserId);

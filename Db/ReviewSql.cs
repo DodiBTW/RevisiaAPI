@@ -8,7 +8,7 @@ public static class ReviewSql
     public static async Task<List<Review>> GetReviewsByUserIdAsync(int userId, MySqlConnection conn)
     {
         var reviews = new List<Review>();
-        var cmd = new MySqlCommand("SELECT * FROM Reviews WHERE UserId = @userId", conn);
+        var cmd = new MySqlCommand("SELECT * FROM Review WHERE UserId = @userId", conn);
         cmd.Parameters.AddWithValue("@userId", userId);
         using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
@@ -29,7 +29,7 @@ public static class ReviewSql
 
     public static async Task<int> CreateReviewAsync(Review review, MySqlConnection conn)
     {
-        var cmd = new MySqlCommand(@"INSERT INTO Reviews (CardId, UserId, Remembered, ReviewedAt, PreviousInterval, NewInterval)
+        var cmd = new MySqlCommand(@"INSERT INTO Review (CardId, UserId, Remembered, ReviewedAt, PreviousInterval, NewInterval)
             VALUES (@cardId, @userId, @remembered, @reviewedAt, @previousInterval, @newInterval);
             SELECT LAST_INSERT_ID();", conn);
         cmd.Parameters.AddWithValue("@cardId", review.CardId);
