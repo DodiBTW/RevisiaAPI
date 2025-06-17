@@ -31,6 +31,18 @@ public class UsersController : ControllerBase
         bool created = await UserSql.CreateUserAsync(dto.Username, dto.Email, hashedPassword, conn);
         if (!created) return Conflict("Username or email already taken.");
 
+        var user = await UserSql.GetUserByUsernameOrEmailAsync(dto.Username, conn);
+        if (user == null) return StatusCode(500, "User creation failed, please try again.");
+
+        var token = _jwtService.GenerateToken(user);
+        Response.Cookies.Append("jwt", token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddHours(2)
+        });
+
         return Ok(new { message = "Registered successfully" });
     }
 
@@ -54,8 +66,14 @@ public class UsersController : ControllerBase
         if (!validPassword) return Unauthorized("Password incorrect, no cap.");
 
         string token = _jwtService.GenerateToken(user);
-
-        return Ok(new { token });
+        Response.Cookies.Append("jwt", token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddHours(2)
+        });
+        return Ok();
     }
 
     [Authorize]
