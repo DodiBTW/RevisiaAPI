@@ -47,6 +47,21 @@ public static class CardSql
         return (int)cmd.LastInsertedId;
     }
 
+    public static async Task UpdateCardAsync(Card card, MySqlConnection conn)
+    {
+        var cmd = new MySqlCommand(@"UPDATE Card SET DeckId = @deckId, Front = @front, Back = @back, Difficulty = @difficulty, `Interval` = @interval, NextReview = @nextReview, ReviewCount = @reviewCount, Tags = @tags WHERE Id = @id", conn);
+        cmd.Parameters.AddWithValue("@id", card.Id);
+        cmd.Parameters.AddWithValue("@deckId", card.DeckId);
+        cmd.Parameters.AddWithValue("@front", card.Front);
+        cmd.Parameters.AddWithValue("@back", card.Back);
+        cmd.Parameters.AddWithValue("@difficulty", card.Difficulty);
+        cmd.Parameters.AddWithValue("@interval", card.Interval);
+        cmd.Parameters.AddWithValue("@nextReview", card.NextReview);
+        cmd.Parameters.AddWithValue("@reviewCount", card.ReviewCount ?? 0);
+        cmd.Parameters.AddWithValue("@tags", string.Join(',', card.Tags));
+        await cmd.ExecuteNonQueryAsync();
+    }
+
     public static async Task<Card?> GetCardByIdAsync(int cardId, MySqlConnection conn)
     {
         var cmd = new MySqlCommand("SELECT * FROM Card WHERE Id = @cardId", conn);
@@ -70,5 +85,12 @@ public static class CardSql
             };
         }
         return null;
+    }
+
+    public static async Task DeleteCardAsync(int cardId, MySqlConnection conn)
+    {
+        var cmd = new MySqlCommand("DELETE FROM Card WHERE Id = @cardId", conn);
+        cmd.Parameters.AddWithValue("@cardId", cardId);
+        await cmd.ExecuteNonQueryAsync();
     }
 }
