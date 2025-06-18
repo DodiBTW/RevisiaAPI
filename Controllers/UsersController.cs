@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
-using RevisiaAPI.Services;
-using RevisiaAPI.Models;
-using System.Threading.Tasks;
 using RevisiaAPI.Db;
+using RevisiaAPI.Models;
+using RevisiaAPI.Services;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -81,6 +82,26 @@ public class UsersController : ControllerBase
     public IActionResult CheckTokenAuth()
     {
         return Ok(new { message = "Token valid" });
+    }
+    [Authorize]
+    [HttpGet("userData")]
+    public async Task<IActionResult> GetUserData()
+    {
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await using var conn = DbConnection.GetConnection();
+        await conn.OpenAsync();
+        var user = await UserSql.GetUserByUsernameOrEmailAsync(userId.ToString(), conn);
+        if (user == null)
+        {
+            Response.Cookies.Delete("jwt");
+            return Unauthorized("User not found, please log in again.");
+        }
+        return Ok(new
+        {
+            user.Username,
+            user.Email,
+            user.CreatedAt,
+        });
     }
 }
 

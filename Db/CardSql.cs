@@ -49,5 +49,28 @@ public static class CardSql
         return Convert.ToInt32(await cmd.ExecuteScalarAsync());
     }
 
-    // Ajoutez ici les méthodes Update, Delete, GetById si besoin
+    public static async Task<Card?> GetCardByIdAsync(int cardId, MySqlConnection conn)
+    {
+        var cmd = new MySqlCommand("SELECT * FROM Card WHERE Id = @cardId", conn);
+        cmd.Parameters.AddWithValue("@cardId", cardId);
+        using var reader = await cmd.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+        {
+            return new Card
+            {
+                Id = reader.GetInt32("Id"),
+                DeckId = reader.GetInt32("DeckId"),
+                Front = reader.GetString("Front"),
+                Back = reader.GetString("Back"),
+                CreatedAt = reader.GetDateTime("CreatedAt"),
+                UpdatedAt = reader.GetDateTime("UpdatedAt"),
+                Difficulty = reader.GetDouble("Difficulty"),
+                Interval = reader.GetDouble("Interval"),
+                NextReview = reader.GetDateTime("NextReview"),
+                ReviewCount = reader.GetInt32("ReviewCount"),
+                Tags = reader.GetString("Tags").Split(',', StringSplitOptions.RemoveEmptyEntries)
+            };
+        }
+        return null;
+    }
 }

@@ -8,13 +8,13 @@ using RevisiaAPI.Models;
 public class CardsController : ControllerBase
 {
     [Authorize]
-    [HttpGet("{deckId}")]
-    public async Task<IActionResult> GetCards(int deckId)
+    [HttpGet("{cardId}")]
+    public async Task<IActionResult> GetCard(int deckId)
     {
         await using var conn = DbConnection.GetConnection();
         await conn.OpenAsync();
-        var cards = await CardSql.GetCardsByDeckIdAsync(deckId, conn);
-        return Ok(cards);
+        var card = await CardSql.GetCardByIdAsync(deckId, conn);
+        return Ok(card);
     }
 
     [Authorize]

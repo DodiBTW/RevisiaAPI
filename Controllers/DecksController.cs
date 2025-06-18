@@ -34,4 +34,66 @@ public class DecksController : ControllerBase
         deck.Id = id;
         return Ok(deck);
     }
+    [Authorize]
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetDeckById(int id)
+    {
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await using var conn = DbConnection.GetConnection();
+        await conn.OpenAsync();
+        
+        var deck = await DeckSql.GetDeckByIdAsync(id, userId, conn);
+        
+        if (deck == null)
+        {
+            return NotFound();
+        }
+        
+        return Ok(deck);
+    }
+    [Authorize]
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateDeck([FromBody] Deck updatedDeck)
+    {
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        updatedDeck.UserId = userId;
+        updatedDeck.UpdatedAt = DateTime.UtcNow;
+        
+        await using var conn = DbConnection.GetConnection();
+        await conn.OpenAsync();
+        
+        var existingDeck = await DeckSql.GetDeckByIdAsync(updatedDeck.Id, userId, conn);
+        
+        if (existingDeck == null)
+        {
+            return NotFound();
+        }
+        
+        var resp = DeckSql.UpdateDeckAsync(updatedDeck, conn);
+
+        if (resp == null)
+        {
+            return BadRequest("Failed to update deck");
+        }
+        return NoContent();
+    }
+    [Authorize]
+    [HttpGet("{id}/cards")]
+    public async Task<IActionResult> GetDeckCards(int id)
+    {
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await using var conn = DbConnection.GetConnection();
+        await conn.OpenAsync();
+        
+        var deck = await DeckSql.GetDeckByIdAsync(id, userId, conn);
+        
+        if (deck == null)
+        {
+            return NotFound("Deck not found");
+        }
+        
+        var cards = await CardSql.GetCardsByDeckIdAsync(id, conn);
+        
+        return Ok(cards);
+    }
 }
