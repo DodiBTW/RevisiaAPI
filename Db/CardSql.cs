@@ -33,8 +33,8 @@ public static class CardSql
 
     public static async Task<int> CreateCardAsync(Card card, MySqlConnection conn)
     {
-        var cmd = new MySqlCommand(@"INSERT INTO Card (DeckId, Front, Back, CreatedAt, UpdatedAt, Difficulty, Interval, NextReview, ReviewCount, Tags)
-            VALUES (@deckId, @front, @back, @createdAt, @updatedAt, @difficulty, @interval, @nextReview, @reviewCount, @tags);", conn);
+        var cmd = new MySqlCommand(@"INSERT INTO Card (DeckId, Front, Back, Difficulty, Interval, NextReview, ReviewCount, Tags)
+            VALUES (@deckId, @front, @back, @difficulty, @interval, @nextReview, @reviewCount, @tags);", conn);
         cmd.Parameters.AddWithValue("@deckId", card.DeckId);
         cmd.Parameters.AddWithValue("@front", card.Front);
         cmd.Parameters.AddWithValue("@back", card.Back);
