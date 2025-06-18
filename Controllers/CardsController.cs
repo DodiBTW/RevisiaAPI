@@ -10,11 +10,18 @@ public class CardsController : ControllerBase
 {
     [Authorize]
     [HttpGet("{cardId}")]
-    public async Task<IActionResult> GetCard(int deckId)
+    public async Task<IActionResult> GetCard()
     {
         await using var conn = DbConnection.GetConnection();
         await conn.OpenAsync();
-        var card = await CardSql.GetCardByIdAsync(deckId, conn);
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var card = await CardSql.GetCardByIdAsync(cardId, conn);
+
+        var deck = DeckSql.GetDeckByIdAsync(card.DeckId, userId, conn);
+        if (card == null || deck == null)
+        {
+            return NotFound("Card not found or does not belong to the user.");
+        }
         return Ok(card);
     }
 
