@@ -27,6 +27,13 @@ public static class DeckSql
         }
         return decks;
     }
+    public static async Task<bool> DeleteDeckAsync(int id, int userId, MySqlConnection conn)
+    {
+        var cmd = new MySqlCommand("DELETE FROM Deck WHERE Id = @id AND UserId = @userId", conn);
+        cmd.Parameters.AddWithValue("@id", id);
+        cmd.Parameters.AddWithValue("@userId", userId);
+        return await cmd.ExecuteNonQueryAsync() > 0;
+    }
 
     public static async Task<Deck?> GetDeckByIdAsync(int id, int userId, MySqlConnection conn)
     {

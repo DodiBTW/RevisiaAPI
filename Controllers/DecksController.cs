@@ -96,4 +96,23 @@ public class DecksController : ControllerBase
         
         return Ok(cards);
     }
+    [Authorize]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteDeck(int id)
+    {
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await using var conn = DbConnection.GetConnection();
+        await conn.OpenAsync();
+        
+        var deck = await DeckSql.GetDeckByIdAsync(id, userId, conn);
+        
+        if (deck == null)
+        {
+            return NotFound("Deck not found");
+        }
+        
+        await DeckSql.DeleteDeckAsync(id,userId, conn);
+        
+        return Ok(new { message = "Deck deleted successfully" });
+    }
 }
