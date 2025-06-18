@@ -63,7 +63,7 @@ public class CardsController : ControllerBase
         return Ok(new { message = "Card deleted successfully." });
     }
     [Authorize]
-    [HttpPut("{cardId}")]
+    [HttpPatch("{cardId}")]
     public async Task<IActionResult> UpdateCard(int cardId, [FromBody] Card updatedCard)
     {
         int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
