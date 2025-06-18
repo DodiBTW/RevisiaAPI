@@ -73,7 +73,8 @@ public class CardsController : ControllerBase
         {
             return NotFound("Deck not found. Deck id : " + updatedCard.DeckId + " Card : " + updatedCard);
         }
-
+        updatedCard.CreatedAt = originalCard?.CreatedAt ?? DateTime.UtcNow;
+        updatedCard.UpdatedAt = DateTime.UtcNow;
         await CardSql.UpdateCardAsync(updatedCard, conn);
         return Ok(updatedCard);
     }
