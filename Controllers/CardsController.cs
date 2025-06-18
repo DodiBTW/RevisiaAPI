@@ -56,7 +56,7 @@ public class CardsController : ControllerBase
         var deck = await DeckSql.GetDeckByIdAsync(card?.DeckId ?? 0, userId, conn);
         if (card == null || deck == null)
         {
-            return NotFound("Card not found or does not belong to the user.");
+            return NotFound("Card not found or does not belong to the user." + card + " " + deck);
         }
         await CardSql.DeleteCardAsync(cardId, conn);
 
