@@ -2,6 +2,7 @@ using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using RevisiaAPI.Services;
+using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 using System.Text;
 
 
@@ -16,7 +17,12 @@ var audience = builder.Configuration["JWT_AUDIENCE"] ?? throw new Exception("JWT
 DbConnection.Init(builder.Configuration);
 
 // Add services
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
+        options.SerializerSettings.DateFormatString = "yyyy-MM-ddTHH:mm:ss.fffZ";
+    });
 
 
 builder.Services.AddSingleton<JwtService>();
