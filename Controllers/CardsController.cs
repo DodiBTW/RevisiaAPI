@@ -73,9 +73,12 @@ public class CardsController : ControllerBase
         {
             return NotFound("Deck not found. Deck id : " + updatedCard.DeckId + " Card : " + updatedCard);
         }
+        // This sucks
         updatedCard.CreatedAt = originalCard?.CreatedAt ?? DateTime.UtcNow;
         updatedCard.UpdatedAt = DateTime.UtcNow;
         updatedCard.NextReview = originalCard?.NextReview ?? DateTime.UtcNow.AddDays(1);
+        updatedCard.DeckId = originalCard?.DeckId ?? updatedCard.DeckId;
+        // The sucky part is over
         await CardSql.UpdateCardAsync(updatedCard, conn);
         return Ok(updatedCard);
     }
