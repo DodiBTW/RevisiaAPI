@@ -10,7 +10,7 @@ public class CardsController : ControllerBase
 {
     [Authorize]
     [HttpGet("{cardId}")]
-    public async Task<IActionResult> GetCard()
+    public async Task<IActionResult> GetCard(int cardId)
     {
         await using var conn = DbConnection.GetConnection();
         await conn.OpenAsync();
