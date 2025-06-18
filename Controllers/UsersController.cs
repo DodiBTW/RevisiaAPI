@@ -207,4 +207,12 @@ public class UsersController : ControllerBase
             user.CreatedAt,
         });
     }
+    [Authorize]
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Delete("jwt");
+        Response.Cookies.Delete("refreshToken");
+        return Ok(new { message = "Logged out successfully." });
+    }
 }
