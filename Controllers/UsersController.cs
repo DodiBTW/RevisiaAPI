@@ -90,7 +90,7 @@ public class UsersController : ControllerBase
         int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         await using var conn = DbConnection.GetConnection();
         await conn.OpenAsync();
-        var user = await UserSql.GetUserByUsernameOrEmailAsync(userId.ToString(), conn);
+        var user = await UserSql.GetUserByIdAsync(userId, conn);
         if (user == null)
         {
             Response.Cookies.Delete("jwt");

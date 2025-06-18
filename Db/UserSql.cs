@@ -25,6 +25,23 @@ namespace RevisiaAPI.Db
             var rowsAffected = await cmd.ExecuteNonQueryAsync();
             return rowsAffected > 0;
         }
+        public static async Task<User?> GetUserByIdAsync(int userId, MySqlConnection conn)
+        {
+            var cmd = new MySqlCommand("SELECT id, username, email, PasswordHash FROM User WHERE id = @userId", conn);
+            cmd.Parameters.AddWithValue("@userId", userId);
+            await using var reader = await cmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new User
+                {
+                    Id = reader.GetInt32("id"),
+                    Username = reader.GetString("username"),
+                    Email = reader.GetString("email"),
+                    PasswordHash = reader.GetString("PasswordHash")
+                };
+            }
+            return null;
+        }
         public static async Task<User?> GetUserByUsernameOrEmailAsync(string usernameOrEmail, MySqlConnection conn)
         {
             var cmd = new MySqlCommand("SELECT id, username, email, PasswordHash FROM User WHERE Username = @usernameOrEmail OR Email = @usernameOrEmail", conn);
