@@ -134,7 +134,18 @@ public class UsersController : ControllerBase
         if (storedToken == null || storedToken.IsInvalidated || storedToken.ExpiresAt < DateTime.UtcNow)
         {
             Response.Cookies.Delete("refreshToken");
-            return Unauthorized("Invalid or expired refresh token, no cap.");
+            if(storedToken == null)
+            {
+                return Unauthorized("stored token is null, log back in.");
+            }
+            else if (storedToken.IsInvalidated)
+            {
+                return Unauthorized("Refresh token has been invalidated, log back in.");
+            }
+            else
+            {
+                return Unauthorized("Refresh token expired, log back in.");
+            }
         }
 
         var user = await UserSql.GetUserByIdAsync(storedToken.UserId, conn);
