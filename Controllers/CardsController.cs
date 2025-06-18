@@ -65,9 +65,9 @@ public class CardsController : ControllerBase
         int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         updatedCard.Id = cardId;
         updatedCard.UpdatedAt = DateTime.UtcNow;
-        var originalCard = await CardSql.GetCardByIdAsync(cardId, DbConnection.GetConnection());
         await using var conn = DbConnection.GetConnection();
         await conn.OpenAsync();
+        var originalCard = await CardSql.GetCardByIdAsync(cardId, conn);
         var deck = await DeckSql.GetDeckByIdAsync(originalCard?.DeckId ?? 0, userId, conn);
         if (deck == null)
         {
