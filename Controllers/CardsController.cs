@@ -54,10 +54,6 @@ public class CardsController : ControllerBase
         await conn.OpenAsync();
         var card = await CardSql.GetCardByIdAsync(cardId, conn);
         var deck = await DeckSql.GetDeckByIdAsync(card?.DeckId ?? 0, userId, conn);
-        if (card == null || deck == null)
-        {
-            return NotFound("Card not found or does not belong to the user." + card + " " + deck);
-        }
         await CardSql.DeleteCardAsync(cardId, conn);
 
         return Ok(new { message = "Card deleted successfully." });
@@ -69,9 +65,10 @@ public class CardsController : ControllerBase
         int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         updatedCard.Id = cardId;
         updatedCard.UpdatedAt = DateTime.UtcNow;
+        var originalCard = await CardSql.GetCardByIdAsync(cardId, DbConnection.GetConnection());
         await using var conn = DbConnection.GetConnection();
         await conn.OpenAsync();
-        var deck = await DeckSql.GetDeckByIdAsync(updatedCard.DeckId, userId, conn);
+        var deck = await DeckSql.GetDeckByIdAsync(originalCard?.DeckId ?? 0, userId, conn);
         if (deck == null)
         {
             return NotFound("Deck not found. Deck id : " + updatedCard.DeckId + " Card : " + updatedCard);
