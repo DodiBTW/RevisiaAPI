@@ -136,16 +136,9 @@ public class UsersController : ControllerBase
             Response.Cookies.Delete("refreshToken");
             if(storedToken == null)
             {
-                return Unauthorized("stored token is null, log back in.");
+                return Unauthorized("stored token is null, log back in. HashedToken : " + hashedToken);
             }
-            else if (storedToken.IsInvalidated)
-            {
-                return Unauthorized("Refresh token has been invalidated, log back in.");
-            }
-            else
-            {
-                return Unauthorized("Refresh token expired, log back in.");
-            }
+            return Unauthorized("Refresh token expired, log back in.");
         }
 
         var user = await UserSql.GetUserByIdAsync(storedToken.UserId, conn);
