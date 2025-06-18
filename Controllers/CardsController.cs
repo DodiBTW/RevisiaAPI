@@ -74,7 +74,7 @@ public class CardsController : ControllerBase
         var deck = await DeckSql.GetDeckByIdAsync(updatedCard.DeckId, userId, conn);
         if (deck == null)
         {
-            return NotFound("Deck not found.");
+            return NotFound("Deck not found. Deck id : " + updatedCard.DeckId + " Card : " + updatedCard);
         }
 
         await CardSql.UpdateCardAsync(updatedCard, conn);
