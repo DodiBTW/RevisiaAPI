@@ -12,5 +12,5 @@ public class Card
     public double Interval { get; set; }
     public DateTime NextReview { get; set; }
     public int ReviewCount { get; set; }
-    public string[] Tags { get; set; } = Array.Empty<string>();
+    public string Tags { get; set; } = String.Empty;
 }   
