@@ -58,9 +58,10 @@ namespace RevisiaAPI.Db
 
             if (await reader.ReadAsync())
             {
+                object idObj = reader["Id"];
                 return new RefreshToken
                 {
-                    Id = reader.GetString("Id"),
+                    Id = idObj.ToString() ?? Guid.NewGuid().ToString(),
                     UserId = reader.GetInt32("UserId"),
                     HashedValue = reader.GetString("TokenHash"),
                     LastTokenHash = reader.IsDBNull("LastTokenHash") ? null : reader.GetString("LastTokenHash"),
