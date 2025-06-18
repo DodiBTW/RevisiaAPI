@@ -53,7 +53,7 @@ public class DecksController : ControllerBase
     }
     [Authorize]
     [HttpPatch("{id}")]
-    public async Task<IActionResult> UpdateDeck([FromBody] Deck updatedDeck)
+    public async Task<IActionResult> UpdateDeck(int id,[FromBody] Deck updatedDeck)
     {
         int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         updatedDeck.UserId = userId;
@@ -62,7 +62,7 @@ public class DecksController : ControllerBase
         await using var conn = DbConnection.GetConnection();
         await conn.OpenAsync();
         
-        var existingDeck = await DeckSql.GetDeckByIdAsync(updatedDeck.Id, userId, conn);
+        var existingDeck = await DeckSql.GetDeckByIdAsync(id, userId, conn);
         
         if (existingDeck == null)
         {
