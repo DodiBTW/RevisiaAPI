@@ -75,6 +75,7 @@ public class CardsController : ControllerBase
         }
         updatedCard.CreatedAt = originalCard?.CreatedAt ?? DateTime.UtcNow;
         updatedCard.UpdatedAt = DateTime.UtcNow;
+        updatedCard.NextReview = originalCard?.NextReview ?? DateTime.UtcNow.AddDays(1);
         await CardSql.UpdateCardAsync(updatedCard, conn);
         return Ok(updatedCard);
     }
