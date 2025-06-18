@@ -37,12 +37,10 @@ public static class CardSql
         cmd.Parameters.AddWithValue("@deckId", card.DeckId);
         cmd.Parameters.AddWithValue("@front", card.Front);
         cmd.Parameters.AddWithValue("@back", card.Back);
-        cmd.Parameters.AddWithValue("@createdAt", card.CreatedAt);
-        cmd.Parameters.AddWithValue("@updatedAt", card.UpdatedAt);
         cmd.Parameters.AddWithValue("@difficulty", card.Difficulty);
         cmd.Parameters.AddWithValue("@interval", card.Interval);
         cmd.Parameters.AddWithValue("@nextReview", card.NextReview);
-        cmd.Parameters.AddWithValue("@reviewCount", card.ReviewCount);
+        cmd.Parameters.AddWithValue("@reviewCount", 0);
         cmd.Parameters.AddWithValue("@tags", string.Join(',', card.Tags));
         await cmd.ExecuteNonQueryAsync();
         return (int)cmd.LastInsertedId;
