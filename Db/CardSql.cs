@@ -13,6 +13,7 @@ public static class CardSql
         using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
+            string[] tags_to_string_array = reader.GetString("Tags").Split(',').ToArray();
             cards.Add(new Card
             {
                 Id = reader.GetInt32("Id"),
@@ -25,7 +26,7 @@ public static class CardSql
                 Interval = reader.GetDouble("Interval"),
                 NextReview = reader.GetDateTime("NextReview"),
                 ReviewCount = reader.GetInt32("ReviewCount"),
-                Tags = reader.GetString("Tags")
+                Tags = tags_to_string_array
             });
         }
         return cards;
@@ -65,7 +66,7 @@ public static class CardSql
                 Interval = reader.GetDouble("Interval"),
                 NextReview = reader.GetDateTime("NextReview"),
                 ReviewCount = reader.GetInt32("ReviewCount"),
-                Tags = reader.GetString("Tags")
+                Tags = reader.GetString("Tags").Split(',').ToArray()
             };
         }
         return null;
