@@ -25,13 +25,15 @@ public class CardsController : ControllerBase
         int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         card.CreatedAt = DateTime.UtcNow;
         card.UpdatedAt = DateTime.UtcNow;
-        var deck = await DeckSql.GetDeckByIdAsync(card.DeckId, userId, DbConnection.GetConnection());
+        await using var conn = DbConnection.GetConnection();
+        await conn.OpenAsync();
+
+
+        var deck = await DeckSql.GetDeckByIdAsync(card.DeckId, userId, conn);
         if (deck == null)
         {
             return NotFound("Deck not found.");
         }
-        await using var conn = DbConnection.GetConnection();
-        await conn.OpenAsync();
         var id = await CardSql.CreateCardAsync(card, conn);
         card.Id = id;
         return Ok(card);
@@ -60,13 +62,14 @@ public class CardsController : ControllerBase
         int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         updatedCard.Id = cardId;
         updatedCard.UpdatedAt = DateTime.UtcNow;
-        var deck = await DeckSql.GetDeckByIdAsync(updatedCard.DeckId, userId, DbConnection.GetConnection());
+        await using var conn = DbConnection.GetConnection();
+        await conn.OpenAsync();
+        var deck = await DeckSql.GetDeckByIdAsync(updatedCard.DeckId, userId, conn);
         if (deck == null)
         {
             return NotFound("Deck not found.");
         }
-        await using var conn = DbConnection.GetConnection();
-        await conn.OpenAsync();
+
         await CardSql.UpdateCardAsync(updatedCard, conn);
         return Ok(updatedCard);
     }
