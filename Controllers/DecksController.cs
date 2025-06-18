@@ -52,7 +52,7 @@ public class DecksController : ControllerBase
         return Ok(deck);
     }
     [Authorize]
-    [HttpPut("{id}")]
+    [HttpPatch("{id}")]
     public async Task<IActionResult> UpdateDeck([FromBody] Deck updatedDeck)
     {
         int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
