@@ -68,7 +68,9 @@ public class DecksController : ControllerBase
         {
             return NotFound();
         }
-        
+        updatedDeck.CreatedAt = existingDeck.CreatedAt; 
+        updatedDeck.CardCount = existingDeck.CardCount; 
+        updatedDeck.Id = existingDeck.Id;
         var resp = DeckSql.UpdateDeckAsync(updatedDeck, conn);
 
         if (resp == null)
