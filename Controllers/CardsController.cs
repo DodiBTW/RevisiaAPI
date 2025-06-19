@@ -107,6 +107,6 @@ public class CardsController : ControllerBase
         card.UpdatedAt = DateTime.UtcNow;
 
         await CardSql.UpdateCardAsync(card, conn);
-        return Ok("Card reviewed!");
+        return Ok(new { message = "Card reviewed successfully!"});
     }
 }
