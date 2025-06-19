@@ -32,8 +32,6 @@ public class CardsController : ControllerBase
         int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         card.CreatedAt = DateTime.UtcNow;
         card.UpdatedAt = DateTime.UtcNow;
-        card.Difficulty = 2.5;
-        card.Interval = 1;
         await using var conn = DbConnection.GetConnection();
         await conn.OpenAsync();
 
