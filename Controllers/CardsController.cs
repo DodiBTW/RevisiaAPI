@@ -68,7 +68,9 @@ public class CardsController : ControllerBase
         await using var conn = DbConnection.GetConnection();
         await conn.OpenAsync();
         var originalCard = await CardSql.GetCardByIdAsync(cardId, conn);
-        var deck = await DeckSql.GetDeckByIdAsync(originalCard?.DeckId ?? 0, userId, conn);
+        await using var conn2 = DbConnection.GetConnection();
+        await conn2.OpenAsync();
+        var deck = await DeckSql.GetDeckByIdAsync(originalCard?.DeckId ?? 0, userId, conn2);
         if (deck == null)
         {
             return NotFound("Deck not found. Deck id : " + updatedCard.DeckId + " Card : " + updatedCard);
@@ -79,7 +81,9 @@ public class CardsController : ControllerBase
         updatedCard.NextReview = originalCard?.NextReview ?? DateTime.UtcNow.AddDays(1);
         updatedCard.DeckId = originalCard?.DeckId ?? updatedCard.DeckId;
         // The sucky part is over
-        await CardSql.UpdateCardAsync(updatedCard, conn);
+        await using var conn3 = DbConnection.GetConnection();
+        await conn3.OpenAsync();
+        await CardSql.UpdateCardAsync(updatedCard, conn3);
         return Ok(updatedCard);
     }
     [Authorize]
