@@ -82,4 +82,25 @@ public class CardsController : ControllerBase
         await CardSql.UpdateCardAsync(updatedCard, conn);
         return Ok(updatedCard);
     }
+    [Authorize]
+    [HttpPost("{id}/setNextReviewDate")]
+    public async Task<IActionResult> SetNextReviewDate(int id, [FromBody] DateTime nextReviewDate)
+    {
+        await using var conn = DbConnection.GetConnection();
+        await conn.OpenAsync();
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var card = await CardSql.GetCardByIdAsync(id, conn);
+        if (card == null)
+        {
+            return NotFound("Card not found.");
+        }
+        var deck = await DeckSql.GetDeckByIdAsync(card.DeckId, userId, conn);
+        if (deck == null)
+        {
+            return NotFound("Deck not found or user doesn't own deck.");
+        }
+        card.NextReview = nextReviewDate;
+        await CardSql.UpdateCardAsync(card, conn);
+        return Ok(card);
+    }
 }
