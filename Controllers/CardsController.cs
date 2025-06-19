@@ -65,8 +65,21 @@ public class CardsController : ControllerBase
         int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         updatedCard.Id = cardId;
         updatedCard.UpdatedAt = DateTime.UtcNow;
-        await using var conn = DbConnection.GetConnection();
-        await conn.OpenAsync();
+        int retry = 5;
+        var conn = DbConnection.GetConnection();
+        while (retry > 0)
+        {
+            try
+            {
+                await conn.OpenAsync();
+                break;
+            }
+            catch (Exception ex)
+            {
+                retry--;
+                await Task.Delay(250);
+            }
+        }
 
         var originalCard = await CardSql.GetCardByIdAsync(cardId, conn);
         var deck = await DeckSql.GetDeckByIdAsync(originalCard?.DeckId ?? 0, userId, conn);
