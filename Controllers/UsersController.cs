@@ -35,14 +35,32 @@ public class UsersController : ControllerBase
         var user = await UserSql.GetUserByUsernameOrEmailAsync(dto.Username, conn);
         if (user == null) return StatusCode(500, "User creation failed, please try again.");
 
-        var token = _jwtService.GenerateToken(user);
+        var token = _jwtService.GenerateToken(user, dto.RememberMe ? 15 :1440);
         Response.Cookies.Append("jwt", token, new CookieOptions
         {
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddHours(2)
+            Expires = DateTime.UtcNow.AddMinutes(dto.RememberMe ? 15 : 1440)
         });
+        if (dto.RememberMe)
+        {
+            var refreshToken = _jwtService.GenerateRefreshToken(30); 
+            refreshToken.UserId = user.Id;
+            await RefreshTokenSql.CreateRefreshTokenAsync(refreshToken, conn);
+
+            Response.Cookies.Append("refreshToken", refreshToken.Token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = refreshToken.ExpiresAt
+            });
+        }
+        else
+        {
+            Response.Cookies.Delete("refreshToken");
+        }
 
         return Ok(new { message = "Registered successfully" });
     }
@@ -53,9 +71,9 @@ public class UsersController : ControllerBase
         if ((string.IsNullOrWhiteSpace(dto.Username) && string.IsNullOrWhiteSpace(dto.Email)) || string.IsNullOrWhiteSpace(dto.Password))
             return BadRequest("Username/email and password required.");
 
-        var usernameOrEmail = dto.Username ?? dto.Email;
-
-        if (string.IsNullOrWhiteSpace(usernameOrEmail)) return BadRequest("Username or email must be provided.");
+        string? usernameOrEmail = dto.Username ?? dto.Email;
+        if (string.IsNullOrWhiteSpace(usernameOrEmail))
+            return BadRequest("Username or email must be provided.");
 
         await using var conn = DbConnection.GetConnection();
         await conn.OpenAsync();
@@ -66,16 +84,97 @@ public class UsersController : ControllerBase
         bool validPassword = PasswordHelper.VerifyPassword(dto.Password, user.PasswordHash);
         if (!validPassword) return Unauthorized("Password incorrect, no cap.");
 
-        string token = _jwtService.GenerateToken(user);
+
+        string token = _jwtService.GenerateToken(user, dto.RememberMe ? 15 : 1440);
         Response.Cookies.Append("jwt", token, new CookieOptions
         {
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddHours(2)
+            Expires = DateTime.UtcNow.AddMinutes(dto.RememberMe ? 15 : 1440)
         });
+
+        if (dto.RememberMe)
+        {
+            var refreshToken = _jwtService.GenerateRefreshToken(30);
+            refreshToken.UserId = user.Id; 
+            await RefreshTokenSql.CreateRefreshTokenAsync(refreshToken, conn);
+
+            Response.Cookies.Append("refreshToken", refreshToken.Token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = refreshToken.ExpiresAt
+            });
+        }
+        else
+        {
+            Response.Cookies.Delete("refreshToken");
+        }
+
         return Ok();
     }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh()
+    {
+        if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+            return Unauthorized("No refresh token found, blud.");
+
+        await using var conn = DbConnection.GetConnection();
+        await conn.OpenAsync();
+
+        var jwtService = _jwtService;
+
+        // Hash incoming token before querying
+        string hashedToken = jwtService.HashToken(refreshToken);
+
+        var storedToken = await RefreshTokenSql.GetRefreshTokenAsync(hashedToken, conn);
+        if (storedToken == null || storedToken.IsInvalidated || storedToken.ExpiresAt < DateTime.UtcNow)
+        {
+            Response.Cookies.Delete("refreshToken");
+            if(storedToken == null)
+            {
+                return Unauthorized("stored token is null, log back in. HashedToken : " + hashedToken);
+            }
+            return Unauthorized("Refresh token expired, log back in.");
+        }
+
+        var user = await UserSql.GetUserByIdAsync(storedToken.UserId, conn);
+        if (user == null)
+        {
+            Response.Cookies.Delete("refreshToken");
+            return Unauthorized("User not found, log back in.");
+        }
+
+        await RefreshTokenSql.InvalidateRefreshTokenAsync(storedToken.Id, conn);
+
+        var newRefreshToken = jwtService.GenerateRefreshToken(30);
+        newRefreshToken.UserId = user.Id; 
+
+        await RefreshTokenSql.CreateRefreshTokenAsync(newRefreshToken, conn);
+
+        Response.Cookies.Append("refreshToken", newRefreshToken.Token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = newRefreshToken.ExpiresAt
+        });
+
+        var newJwt = _jwtService.GenerateToken(user, 15); // short JWT 15 min on refresh
+        Response.Cookies.Append("jwt", newJwt, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddMinutes(15)
+        });
+
+        return Ok(new { message = "Tokens refreshed, locked in." });
+    }
+
 
     [Authorize]
     [HttpGet("checkTokenAuth")]
@@ -83,19 +182,28 @@ public class UsersController : ControllerBase
     {
         return Ok(new { message = "Token valid" });
     }
+
     [Authorize]
     [HttpGet("userData")]
     public async Task<IActionResult> GetUserData()
     {
-        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out int userId))
+        {
+            Response.Cookies.Delete("jwt");
+            return Unauthorized("Invalid token payload, please log in again.");
+        }
+
         await using var conn = DbConnection.GetConnection();
         await conn.OpenAsync();
+
         var user = await UserSql.GetUserByIdAsync(userId, conn);
         if (user == null)
         {
             Response.Cookies.Delete("jwt");
             return Unauthorized("User not found, please log in again.");
         }
+
         return Ok(new
         {
             user.Username,
@@ -103,5 +211,12 @@ public class UsersController : ControllerBase
             user.CreatedAt,
         });
     }
+    [Authorize]
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Delete("jwt");
+        Response.Cookies.Delete("refreshToken");
+        return Ok(new { message = "Logged out successfully." });
+    }
 }
-

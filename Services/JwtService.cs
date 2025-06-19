@@ -4,7 +4,9 @@ using RevisiaAPI.Models;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
+
 namespace RevisiaAPI.Services
 {
     public class JwtService
@@ -20,7 +22,7 @@ namespace RevisiaAPI.Services
             _audience = config["JWT_AUDIENCE"] ?? throw new Exception("JWT_AUDIENCE missing");
         }
 
-        public string GenerateToken(User user)
+        public string GenerateToken(User user, int validMinutes = 1440)
         {
             var claims = new[]
             {
@@ -37,11 +39,37 @@ namespace RevisiaAPI.Services
                 issuer: _issuer,
                 audience: _audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(2),
+                expires: DateTime.UtcNow.AddMinutes(validMinutes),
                 signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        public RefreshToken GenerateRefreshToken(int daysValid)
+        {
+            var randomBytes = new byte[64];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomBytes);
+            }
+            string token = Convert.ToBase64String(randomBytes);
+            string hashedValue = HashToken(token);
+            var expiry = DateTime.UtcNow.AddDays(daysValid);
+            return new RefreshToken
+            {
+                Token = token,
+                HashedValue = hashedValue,
+                ExpiresAt = expiry
+            };
+        }
+
+        public string HashToken(string token)
+        {
+            using var sha256 = SHA256.Create();
+            byte[] bytes = Encoding.UTF8.GetBytes(token);
+            byte[] hash = sha256.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
         }
     }
 }
