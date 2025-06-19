@@ -171,6 +171,10 @@ public class UsersController : ControllerBase
             SameSite = SameSiteMode.Strict,
             Expires = DateTime.UtcNow.AddMinutes(15)
         });
+        UserSettings newSettings = new UserSettings
+        {
+            userId = user.Id,
+        };
 
         return Ok(new { message = "Tokens refreshed, locked in." });
     }
