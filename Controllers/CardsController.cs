@@ -79,7 +79,7 @@ public class CardsController : ControllerBase
         updatedCard.NextReview = originalCard?.NextReview ?? DateTime.UtcNow.AddDays(1);
         updatedCard.DeckId = originalCard?.DeckId ?? updatedCard.DeckId;
         // The sucky part is over
-        await CardSql.UpdateCardAsync(updatedCard, conn);
+        // await CardSql.UpdateCardAsync(updatedCard, conn);
         return Ok(updatedCard);
     }
     [Authorize]
