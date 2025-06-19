@@ -113,7 +113,7 @@ public class UsersController : ControllerBase
             Response.Cookies.Delete("refreshToken");
         }
 
-        return Ok();
+        return Ok("Successfully logged in");
     }
 
     [HttpPost("refresh")]

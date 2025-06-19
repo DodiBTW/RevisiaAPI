@@ -77,7 +77,7 @@ public class DecksController : ControllerBase
         {
             return BadRequest("Failed to update deck");
         }
-        return NoContent();
+        return Ok("Deck updated!");
     }
     [Authorize]
     [HttpGet("{id}/cards")]
