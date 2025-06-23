@@ -8,6 +8,7 @@
         public double forgotMultiplier = 0.5;
         public int maxInterval = 365;
         public int dailyGoal = 10;
+        public string? language = "en";
 
         public UserSettings() { }
     }

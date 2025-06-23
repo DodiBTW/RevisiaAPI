@@ -19,7 +19,8 @@ namespace RevisiaAPI.Db
                     rememberMultiplier = reader.GetDouble("rememberMultiplier"),
                     forgotMultiplier = reader.GetDouble("forgotMultiplier"),
                     maxInterval = reader.GetInt32("maxInterval"),
-                    dailyGoal = reader.GetInt32("dailyGoal")
+                    dailyGoal = reader.GetInt32("dailyGoal"),
+                    language = reader.GetString("language"),
                 };
             }
             return null;
@@ -28,8 +29,8 @@ namespace RevisiaAPI.Db
         public static async Task<bool> InsertSettings(UserSettings settings, MySqlConnection conn)
         {
             var cmd = new MySqlCommand(@"
-                INSERT INTO UserSettings (UserId, RememberMultiplier, ForgotMultiplier, MaxInterval, DailyGoal)
-                VALUES (@userId, @rememberMultiplier, @forgotMultiplier, @maxInterval, @dailyGoal)
+                INSERT INTO UserSettings (UserId, RememberMultiplier, ForgotMultiplier, MaxInterval, DailyGoal, Language)
+                VALUES (@userId, @rememberMultiplier, @forgotMultiplier, @maxInterval, @dailyGoal, @language)
                 ON DUPLICATE KEY UPDATE
                     RememberMultiplier = @rememberMultiplier,
                     ForgotMultiplier = @forgotMultiplier,
@@ -41,6 +42,7 @@ namespace RevisiaAPI.Db
             cmd.Parameters.AddWithValue("@forgotMultiplier", settings.forgotMultiplier);
             cmd.Parameters.AddWithValue("@maxInterval", settings.maxInterval);
             cmd.Parameters.AddWithValue("@dailyGoal", settings.dailyGoal);
+            cmd.Parameters.AddWithValue("@language", settings.language ?? "en");
 
             return await cmd.ExecuteNonQueryAsync() > 0;
         }
@@ -51,13 +53,15 @@ namespace RevisiaAPI.Db
                 SET RememberMultiplier = @rememberMultiplier,
                     ForgotMultiplier = @forgotMultiplier,
                     MaxInterval = @maxInterval,
-                    DailyGoal = @dailyGoal
+                    DailyGoal = @dailyGoal,
+                    Language = @language
                 WHERE UserId = @userId", conn);
             cmd.Parameters.AddWithValue("@userId", settings.userId);
             cmd.Parameters.AddWithValue("@rememberMultiplier", settings.rememberMultiplier);
             cmd.Parameters.AddWithValue("@forgotMultiplier", settings.forgotMultiplier);
             cmd.Parameters.AddWithValue("@maxInterval", settings.maxInterval);
             cmd.Parameters.AddWithValue("@dailyGoal", settings.dailyGoal);
+            cmd.Parameters.AddWithValue("@language", settings.language ?? "en");
             return await cmd.ExecuteNonQueryAsync() > 0;
         }
     }
