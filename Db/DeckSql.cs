@@ -86,4 +86,12 @@ public static class DeckSql
         
         return await cmd.ExecuteNonQueryAsync() > 0;
     }
+    public static async Task UpdateDeckLastUpdatedAsync(int deckId, int userId, MySqlConnection conn)
+    {
+        var cmd = new MySqlCommand("UPDATE Deck SET UpdatedAt = @updatedAt WHERE Id = @deckId AND UserId = @userId", conn);
+        cmd.Parameters.AddWithValue("@deckId", deckId);
+        cmd.Parameters.AddWithValue("@userId", userId);
+        cmd.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow);
+        await cmd.ExecuteNonQueryAsync();
+    }
 }

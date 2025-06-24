@@ -43,6 +43,7 @@ public class CardsController : ControllerBase
         }
         var id = await CardSql.CreateCardAsync(card, conn);
         card.Id = id;
+        await DeckSql.UpdateDeckLastUpdatedAsync(deck.Id, userId,conn);
         return Ok(card);
     }
     [Authorize]
@@ -54,7 +55,13 @@ public class CardsController : ControllerBase
         await conn.OpenAsync();
         var card = await CardSql.GetCardByIdAsync(cardId, conn);
         var deck = await DeckSql.GetDeckByIdAsync(card?.DeckId ?? 0, userId, conn);
+        if (card == null || deck == null)
+        {
+            return NotFound("Card or deck not found.");
+        }
         await CardSql.DeleteCardAsync(cardId, conn);
+        await DeckSql.UpdateDeckLastUpdatedAsync(deck.Id, userId, conn);
+
 
         return Ok(new { message = "Card deleted successfully." });
     }
@@ -81,6 +88,7 @@ public class CardsController : ControllerBase
         updatedCard.DeckId = originalCard?.DeckId ?? updatedCard.DeckId;
         // The sucky part is over
         await CardSql.UpdateCardAsync(updatedCard, conn);
+        await DeckSql.UpdateDeckLastUpdatedAsync(deck.Id, userId, conn);
         return Ok(updatedCard);
     }
     [Authorize]
@@ -89,12 +97,13 @@ public class CardsController : ControllerBase
     {
         await using var conn = DbConnection.GetConnection();
         await conn.OpenAsync();
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var card = await CardSql.GetCardByIdAsync(cardId, conn);
         if (card == null)
         {
             return NotFound("Card not found.");
         }
-        var deck = await DeckSql.GetDeckByIdAsync(card.DeckId, int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!), conn);
+        var deck = await DeckSql.GetDeckByIdAsync(card.DeckId, userId, conn);
         if (deck == null)
         {
             return NotFound("Deck not found or user doesn't own card.");
@@ -107,6 +116,7 @@ public class CardsController : ControllerBase
         card.UpdatedAt = DateTime.UtcNow;
 
         await CardSql.UpdateCardAsync(card, conn);
+        await DeckSql.UpdateDeckLastUpdatedAsync(deck.Id, userId, conn);
         return Ok(new { message = "Card reviewed successfully!"});
     }
 }
