@@ -60,6 +60,9 @@ builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
+// Configure static file serving for uploaded images
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

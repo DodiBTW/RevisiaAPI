@@ -16,9 +16,13 @@ public class CardsController : ControllerBase
         await conn.OpenAsync();
         int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var card = await CardSql.GetCardByIdAsync(cardId, conn);
+        if (card == null)
+        {
+            return NotFound("Card not found.");
+        }
 
-        var deck = DeckSql.GetDeckByIdAsync(card.DeckId, userId, conn);
-        if (card == null || deck == null)
+        var deck = await DeckSql.GetDeckByIdAsync(card.DeckId, userId, conn);
+        if (deck == null)
         {
             return NotFound("Card not found or does not belong to the user.");
         }
@@ -118,5 +122,155 @@ public class CardsController : ControllerBase
         await CardSql.UpdateCardAsync(card, conn);
         await DeckSql.UpdateDeckLastUpdatedAsync(deck.Id, userId, conn);
         return Ok(new { message = "Card reviewed successfully!"});
+    }
+
+    [Authorize]
+    [HttpPost("{cardId}/upload-front-image")]
+    public async Task<IActionResult> UploadFrontImage(int cardId, IFormFile image)
+    {
+        return await UploadCardImage(cardId, image, "front");
+    }
+
+    [Authorize]
+    [HttpPost("{cardId}/upload-back-image")]
+    public async Task<IActionResult> UploadBackImage(int cardId, IFormFile image)
+    {
+        return await UploadCardImage(cardId, image, "back");
+    }
+
+    [Authorize]
+    [HttpDelete("{cardId}/image/{side}")]
+    public async Task<IActionResult> DeleteCardImage(int cardId, string side)
+    {
+        if (side != "front" && side != "back")
+        {
+            return BadRequest("Side must be 'front' or 'back'");
+        }
+
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await using var conn = DbConnection.GetConnection();
+        await conn.OpenAsync();
+
+        var card = await CardSql.GetCardByIdAsync(cardId, conn);
+        if (card == null)
+        {
+            return NotFound("Card not found.");
+        }
+
+        var deck = await DeckSql.GetDeckByIdAsync(card.DeckId, userId, conn);
+        if (deck == null)
+        {
+            return NotFound("Deck not found or user doesn't own card.");
+        }
+
+        // Delete the physical file
+        string? imagePath = side == "front" ? card.FrontImage : card.BackImage;
+        if (!string.IsNullOrEmpty(imagePath))
+        {
+            string fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", imagePath.TrimStart('/'));
+            if (System.IO.File.Exists(fullPath))
+            {
+                System.IO.File.Delete(fullPath);
+            }
+        }
+
+        // Update the card in database
+        if (side == "front")
+        {
+            card.FrontImage = null;
+        }
+        else
+        {
+            card.BackImage = null;
+        }
+        card.UpdatedAt = DateTime.UtcNow;
+
+        await CardSql.UpdateCardAsync(card, conn);
+        await DeckSql.UpdateDeckLastUpdatedAsync(deck.Id, userId, conn);
+
+        return Ok(new { message = $"{side} image deleted successfully." });
+    }
+
+    private async Task<IActionResult> UploadCardImage(int cardId, IFormFile image, string side)
+    {
+        if (image == null || image.Length == 0)
+        {
+            return BadRequest("No image file provided.");
+        }
+
+        // Validate file type
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+        var fileExtension = Path.GetExtension(image.FileName).ToLowerInvariant();
+        if (!allowedExtensions.Contains(fileExtension))
+        {
+            return BadRequest("Invalid file type. Only jpg, jpeg, png, gif, and webp are allowed.");
+        }
+
+        // Validate file size (max 5MB)
+        if (image.Length > 5 * 1024 * 1024)
+        {
+            return BadRequest("File size cannot exceed 5MB.");
+        }
+
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await using var conn = DbConnection.GetConnection();
+        await conn.OpenAsync();
+
+        var card = await CardSql.GetCardByIdAsync(cardId, conn);
+        if (card == null)
+        {
+            return NotFound("Card not found.");
+        }
+
+        var deck = await DeckSql.GetDeckByIdAsync(card.DeckId, userId, conn);
+        if (deck == null)
+        {
+            return NotFound("Deck not found or user doesn't own card.");
+        }
+
+        // Create directory structure
+        string uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "cards", cardId.ToString());
+        Directory.CreateDirectory(uploadsDir);
+
+        // Delete existing image if it exists
+        string? existingImagePath = side == "front" ? card.FrontImage : card.BackImage;
+        if (!string.IsNullOrEmpty(existingImagePath))
+        {
+            string existingFullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", existingImagePath.TrimStart('/'));
+            if (System.IO.File.Exists(existingFullPath))
+            {
+                System.IO.File.Delete(existingFullPath);
+            }
+        }
+
+        // Generate unique filename
+        string fileName = $"{side}_{Guid.NewGuid()}{fileExtension}";
+        string filePath = Path.Combine(uploadsDir, fileName);
+        string relativePath = $"/uploads/cards/{cardId}/{fileName}";
+
+        // Save the file
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await image.CopyToAsync(stream);
+        }
+
+        // Update the card in database
+        if (side == "front")
+        {
+            card.FrontImage = relativePath;
+        }
+        else
+        {
+            card.BackImage = relativePath;
+        }
+        card.UpdatedAt = DateTime.UtcNow;
+
+        await CardSql.UpdateCardAsync(card, conn);
+        await DeckSql.UpdateDeckLastUpdatedAsync(deck.Id, userId, conn);
+
+        return Ok(new { 
+            message = $"{side} image uploaded successfully.",
+            imagePath = relativePath
+        });
     }
 }

@@ -20,6 +20,8 @@ public static class CardSql
                 DeckId = reader.GetInt32("DeckId"),
                 Front = reader.GetString("Front"),
                 Back = reader.GetString("Back"),
+                FrontImage = reader.IsDBNull(reader.GetOrdinal("FrontImage")) ? null : reader.GetString("FrontImage"),
+                BackImage = reader.IsDBNull(reader.GetOrdinal("BackImage")) ? null : reader.GetString("BackImage"),
                 CreatedAt = reader.GetDateTime("CreatedAt"),
                 UpdatedAt = reader.GetDateTime("UpdatedAt"),
                 Difficulty = reader.GetDouble("Difficulty"),
@@ -34,10 +36,12 @@ public static class CardSql
 
     public static async Task<int> CreateCardAsync(Card card, MySqlConnection conn)
     {
-        var cmd = new MySqlCommand(@"INSERT INTO Card (DeckId, Front, Back, Difficulty, `Interval`, NextReview, ReviewCount, Tags) VALUES (@deckId, @front, @back, @difficulty, @interval, @nextReview, @reviewCount, @tags);", conn);
+        var cmd = new MySqlCommand(@"INSERT INTO Card (DeckId, Front, Back, FrontImage, BackImage, Difficulty, `Interval`, NextReview, ReviewCount, Tags) VALUES (@deckId, @front, @back, @frontImage, @backImage, @difficulty, @interval, @nextReview, @reviewCount, @tags);", conn);
         cmd.Parameters.AddWithValue("@deckId", card.DeckId);
         cmd.Parameters.AddWithValue("@front", card.Front);
         cmd.Parameters.AddWithValue("@back", card.Back);
+        cmd.Parameters.AddWithValue("@frontImage", card.FrontImage);
+        cmd.Parameters.AddWithValue("@backImage", card.BackImage);
         cmd.Parameters.AddWithValue("@difficulty", card.Difficulty);
         cmd.Parameters.AddWithValue("@interval", card.Interval);
         cmd.Parameters.AddWithValue("@nextReview", card.NextReview);
@@ -49,11 +53,13 @@ public static class CardSql
 
     public static async Task UpdateCardAsync(Card card, MySqlConnection conn)
     {
-        var cmd = new MySqlCommand(@"UPDATE Card SET DeckId = @deckId, Front = @front, Back = @back, Difficulty = @difficulty, `Interval` = @interval, NextReview = @nextReview, ReviewCount = @reviewCount, Tags = @tags WHERE Id = @id", conn);
+        var cmd = new MySqlCommand(@"UPDATE Card SET DeckId = @deckId, Front = @front, Back = @back, FrontImage = @frontImage, BackImage = @backImage, Difficulty = @difficulty, `Interval` = @interval, NextReview = @nextReview, ReviewCount = @reviewCount, Tags = @tags WHERE Id = @id", conn);
         cmd.Parameters.AddWithValue("@id", card.Id);
         cmd.Parameters.AddWithValue("@deckId", card.DeckId);
         cmd.Parameters.AddWithValue("@front", card.Front);
         cmd.Parameters.AddWithValue("@back", card.Back);
+        cmd.Parameters.AddWithValue("@frontImage", card.FrontImage);
+        cmd.Parameters.AddWithValue("@backImage", card.BackImage);
         cmd.Parameters.AddWithValue("@difficulty", card.Difficulty);
         cmd.Parameters.AddWithValue("@interval", card.Interval);
         cmd.Parameters.AddWithValue("@nextReview", card.NextReview);
@@ -75,6 +81,8 @@ public static class CardSql
                 DeckId = reader.GetInt32("DeckId"),
                 Front = reader.GetString("Front"),
                 Back = reader.GetString("Back"),
+                FrontImage = reader.IsDBNull(reader.GetOrdinal("FrontImage")) ? null : reader.GetString("FrontImage"),
+                BackImage = reader.IsDBNull(reader.GetOrdinal("BackImage")) ? null : reader.GetString("BackImage"),
                 CreatedAt = reader.GetDateTime("CreatedAt"),
                 UpdatedAt = reader.GetDateTime("UpdatedAt"),
                 Difficulty = reader.GetDouble("Difficulty"),
