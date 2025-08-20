@@ -272,7 +272,7 @@ public class CardsController : ControllerBase
         // Generate unique filename
         string fileName = $"{side}_{Guid.NewGuid()}{fileExtension}";
         string filePath = Path.Combine(uploadsDir, fileName);
-        string relativePath = $"/uploads/cards/{cardId}/{fileName}";
+        string relativePath = $"/api/cards/image/{cardId}/{fileName}"; // Use API endpoint instead of static path
 
         // Save the file
         using (var stream = new FileStream(filePath, FileMode.Create))
@@ -298,5 +298,92 @@ public class CardsController : ControllerBase
             message = $"{side} image uploaded successfully.",
             imagePath = relativePath
         });
+    }
+
+    [Authorize]
+    [HttpGet("{cardId}/debug-images")]
+    public async Task<IActionResult> DebugCardImages(int cardId)
+    {
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await using var conn = DbConnection.GetConnection();
+        await conn.OpenAsync();
+
+        var card = await CardSql.GetCardByIdAsync(cardId, conn);
+        if (card == null)
+        {
+            return NotFound("Card not found.");
+        }
+
+        var deck = await DeckSql.GetDeckByIdAsync(card.DeckId, userId, conn);
+        if (deck == null)
+        {
+            return NotFound("Deck not found or user doesn't own card.");
+        }
+
+        // Check if files exist on disk
+        var debugInfo = new
+        {
+            CardId = cardId,
+            FrontImagePath = card.FrontImage,
+            BackImagePath = card.BackImage,
+            WorkingDirectory = Directory.GetCurrentDirectory(),
+            FrontImageExists = !string.IsNullOrEmpty(card.FrontImage) && 
+                              System.IO.File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", card.FrontImage.TrimStart('/'))),
+            BackImageExists = !string.IsNullOrEmpty(card.BackImage) && 
+                             System.IO.File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", card.BackImage.TrimStart('/'))),
+            UploadsDirExists = Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "cards", cardId.ToString())),
+            FilesInDir = Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "cards", cardId.ToString())) 
+                        ? Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "cards", cardId.ToString()))
+                        : new string[0]
+        };
+
+        return Ok(debugInfo);
+    }
+
+    [Authorize]
+    [HttpGet("image/{cardId}/{fileName}")]
+    public async Task<IActionResult> ServeImage(int cardId, string fileName)
+    {
+        // Serve image directly from controller with proper authorization
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await using var conn = DbConnection.GetConnection();
+        await conn.OpenAsync();
+
+        var card = await CardSql.GetCardByIdAsync(cardId, conn);
+        if (card == null)
+        {
+            return NotFound("Card not found.");
+        }
+
+        var deck = await DeckSql.GetDeckByIdAsync(card.DeckId, userId, conn);
+        if (deck == null)
+        {
+            return NotFound("Card not found or user doesn't own this card.");
+        }
+
+        string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "cards", cardId.ToString(), fileName);
+        
+        if (!System.IO.File.Exists(filePath))
+        {
+            return NotFound("Image not found.");
+        }
+
+        var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+        var contentType = GetContentType(fileName);
+        
+        return File(fileBytes, contentType);
+    }
+
+    private string GetContentType(string fileName)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return extension switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".gif" => "image/gif",
+            ".webp" => "image/webp",
+            _ => "application/octet-stream"
+        };
     }
 }

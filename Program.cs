@@ -61,7 +61,11 @@ builder.Services.AddEndpointsApiExplorer();
 var app = builder.Build();
 
 // Configure static file serving for uploaded images
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    ServeUnknownFileTypes = true,
+    DefaultContentType = "application/octet-stream"
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
