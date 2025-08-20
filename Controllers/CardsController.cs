@@ -63,9 +63,35 @@ public class CardsController : ControllerBase
         {
             return NotFound("Card or deck not found.");
         }
+
+        // Delete associated image files before deleting the card
+        if (!string.IsNullOrEmpty(card.FrontImage))
+        {
+            string frontImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", card.FrontImage.TrimStart('/'));
+            if (System.IO.File.Exists(frontImagePath))
+            {
+                System.IO.File.Delete(frontImagePath);
+            }
+        }
+
+        if (!string.IsNullOrEmpty(card.BackImage))
+        {
+            string backImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", card.BackImage.TrimStart('/'));
+            if (System.IO.File.Exists(backImagePath))
+            {
+                System.IO.File.Delete(backImagePath);
+            }
+        }
+
+        // Delete the card directory if it's empty after removing images
+        string cardDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "cards", cardId.ToString());
+        if (Directory.Exists(cardDir) && !Directory.EnumerateFileSystemEntries(cardDir).Any())
+        {
+            Directory.Delete(cardDir);
+        }
+
         await CardSql.DeleteCardAsync(cardId, conn);
         await DeckSql.UpdateDeckLastUpdatedAsync(deck.Id, userId, conn);
-
 
         return Ok(new { message = "Card deleted successfully." });
     }
