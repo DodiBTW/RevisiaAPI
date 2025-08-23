@@ -67,7 +67,7 @@ public class CardsController : ControllerBase
         // Delete associated image files before deleting the card
         if (!string.IsNullOrEmpty(card.FrontImage))
         {
-            string frontImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", card.FrontImage.TrimStart('/'));
+            string frontImagePath = GetPhysicalImagePath(card.FrontImage, cardId);
             if (System.IO.File.Exists(frontImagePath))
             {
                 System.IO.File.Delete(frontImagePath);
@@ -76,7 +76,7 @@ public class CardsController : ControllerBase
 
         if (!string.IsNullOrEmpty(card.BackImage))
         {
-            string backImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", card.BackImage.TrimStart('/'));
+            string backImagePath = GetPhysicalImagePath(card.BackImage, cardId);
             if (System.IO.File.Exists(backImagePath))
             {
                 System.IO.File.Delete(backImagePath);
@@ -193,7 +193,7 @@ public class CardsController : ControllerBase
         string? imagePath = side == "front" ? card.FrontImage : card.BackImage;
         if (!string.IsNullOrEmpty(imagePath))
         {
-            string fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", imagePath.TrimStart('/'));
+            string fullPath = GetPhysicalImagePath(imagePath, cardId);
             if (System.IO.File.Exists(fullPath))
             {
                 System.IO.File.Delete(fullPath);
@@ -262,7 +262,7 @@ public class CardsController : ControllerBase
         string? existingImagePath = side == "front" ? card.FrontImage : card.BackImage;
         if (!string.IsNullOrEmpty(existingImagePath))
         {
-            string existingFullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", existingImagePath.TrimStart('/'));
+            string existingFullPath = GetPhysicalImagePath(existingImagePath, cardId);
             if (System.IO.File.Exists(existingFullPath))
             {
                 System.IO.File.Delete(existingFullPath);
@@ -385,5 +385,22 @@ public class CardsController : ControllerBase
             ".webp" => "image/webp",
             _ => "application/octet-stream"
         };
+    }
+
+    private string GetPhysicalImagePath(string imagePath, int cardId)
+    {
+        if (imagePath.StartsWith("/api/cards/image/"))
+        {
+            // Extract filename from API path: /api/cards/image/{cardId}/{fileName}
+            var pathParts = imagePath.Split('/');
+            if (pathParts.Length >= 5)
+            {
+                var fileName = pathParts[^1]; // Last part is the filename
+                return Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "cards", cardId.ToString(), fileName);
+            }
+        }
+        
+        // Old static path format: /uploads/cards/{cardId}/{fileName} or fallback
+        return Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", imagePath.TrimStart('/'));
     }
 }
