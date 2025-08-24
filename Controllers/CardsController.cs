@@ -117,6 +117,16 @@ public class CardsController : ControllerBase
         updatedCard.NextReview = originalCard?.NextReview ?? DateTime.UtcNow.AddDays(1);
         updatedCard.DeckId = originalCard?.DeckId ?? updatedCard.DeckId;
         // The sucky part is over
+        
+        // Preserve image paths - don't overwrite them unless explicitly provided
+        if (string.IsNullOrEmpty(updatedCard.FrontImage) && !string.IsNullOrEmpty(originalCard?.FrontImage))
+        {
+            updatedCard.FrontImage = originalCard.FrontImage;
+        }
+        if (string.IsNullOrEmpty(updatedCard.BackImage) && !string.IsNullOrEmpty(originalCard?.BackImage))
+        {
+            updatedCard.BackImage = originalCard.BackImage;
+        }
         await CardSql.UpdateCardAsync(updatedCard, conn);
         await DeckSql.UpdateDeckLastUpdatedAsync(deck.Id, userId, conn);
         return Ok(updatedCard);
