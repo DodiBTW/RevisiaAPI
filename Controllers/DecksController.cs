@@ -115,7 +115,40 @@ public class DecksController : ControllerBase
         
         await DeckSql.DeleteDeckAsync(id,userId, conn);
         
+        // Remove all course relationships for this deck
+        await CourseDeckSql.RemoveAllDeckRelationshipsAsync(id, conn);
+        
         return Ok(new { message = "Deck deleted successfully" });
     }
-    
+
+    [Authorize]
+    [HttpGet("{id}/courses")]
+    public async Task<IActionResult> GetDeckCourses(int id)
+    {
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await using var conn = DbConnection.GetConnection();
+        await conn.OpenAsync();
+        
+        var deck = await DeckSql.GetDeckByIdAsync(id, userId, conn);
+        if (deck == null)
+        {
+            return NotFound("Deck not found");
+        }
+        
+        // Get course IDs for this deck
+        var courseIds = await CourseDeckSql.getCourseIdsByDeckIdAsync(id, conn);
+        
+        // Get the actual course objects
+        var courses = new List<Course>();
+        foreach (var courseId in courseIds)
+        {
+            var course = await CourseSql.GetCourseByIdAsync(courseId, userId, conn);
+            if (course != null)
+            {
+                courses.Add(course);
+            }
+        }
+
+        return Ok(courses);
+    }
 }
