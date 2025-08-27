@@ -113,10 +113,10 @@ public class DecksController : ControllerBase
             return NotFound("Deck not found");
         }
         
-        await DeckSql.DeleteDeckAsync(id,userId, conn);
         
         // Remove all course relationships for this deck
         await CourseDeckSql.RemoveAllDeckRelationshipsAsync(id, conn);
+        await DeckSql.DeleteDeckAsync(id,userId, conn);
         
         return Ok(new { message = "Deck deleted successfully" });
     }
