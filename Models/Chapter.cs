@@ -10,4 +10,5 @@ public class Chapter
     public DateTime? CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public bool IsActive { get; set; } = true;
+    public string? Notes { get; set; } // Markdown notes, max 10k characters validated in code
 }

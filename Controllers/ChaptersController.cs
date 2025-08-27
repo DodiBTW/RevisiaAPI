@@ -115,7 +115,7 @@ public class ChaptersController : ControllerBase
         {
             return BadRequest("Notes cannot exceed 10,000 characters.");
         }
-g
+
         // Update fields
         updatedChapter.Id = chapterId;
         updatedChapter.CourseId = courseId;
